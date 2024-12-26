@@ -1,6 +1,6 @@
 {
 	"name": "@yoshi2no/traceit",
-	"version": "0.0.13",
+	"version": "0.0.14",
 	"description": "",
 	"bin": {
 		"traceit": "./build/index.js"

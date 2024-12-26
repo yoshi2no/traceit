@@ -10,7 +10,9 @@ function addConsoleLogToFunctions(filePath: string): void {
 	const project = new Project();
 	const sourceFile = project.addSourceFileAtPath(filePath);
 
-	const DEFAULT_SYNTAX_NAME = "<anonymous>";
+	const DEFAULT_SYNTAX_NAME = "";
+
+	const fileName = path.basename(filePath);
 
 	sourceFile.forEachDescendant((node) => {
 		if (
@@ -55,16 +57,16 @@ function addConsoleLogToFunctions(filePath: string): void {
 						break;
 				}
 
-				const template = `console.log("⭐️[DEBUG:${APP.NAME}] ${functionName}");`;
+				const template = `console.log("⭐️[DEBUG:${APP.NAME}] ${fileName} - ${functionName}");`;
 
 				const firstStatement = body.getStatements()[0];
 				if (
-					functionName !== "" &&
+					functionName !== DEFAULT_SYNTAX_NAME &&
 					firstStatement?.getKind() === SyntaxKind.ExpressionStatement &&
 					firstStatement.getText().includes("console.log")
 				) {
 					firstStatement.replaceWithText(template);
-				} else if (functionName !== "") {
+				} else if (functionName !== DEFAULT_SYNTAX_NAME) {
 					body.insertStatements(0, template);
 				}
 			}
