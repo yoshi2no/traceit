@@ -3,7 +3,7 @@
 import { Project, SyntaxKind } from "ts-morph";
 import fs from "node:fs";
 import path from "node:path";
-import { APP } from "./constants/app";
+import { APP } from "./constants/app.js";
 
 function addConsoleLogToFunctions(filePath: string): void {
 	const project = new Project();
