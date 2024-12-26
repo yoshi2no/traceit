@@ -18,6 +18,7 @@ export function modernConfig(opts) {
 		banner: {
 			js: `
 	import { createRequire } from 'module';
+	import fs from 'fs';
 	import path from 'path';
 	import { fileURLToPath } from 'url';
 	const require = createRequire(import.meta.url);
