@@ -2,6 +2,9 @@
 	"name": "@yoshi2no/traceit",
 	"version": "0.0.1",
 	"description": "",
+	"bin": {
+		"traceit": "./src/index.ts"
+	},
 	"type": "module",
 	"types": "build/index.d.ts",
 	"main": "build/index.cjs",
