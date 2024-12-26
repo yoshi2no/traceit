@@ -11,7 +11,6 @@ function addConsoleLogToFunctions(filePath: string): void {
 
 	const DEFAULT_SYNTAX_NAME = "<anonymous>";
 
-	// 関数、コンストラクタ、アロー関数のすべてに対応
 	sourceFile.forEachDescendant((node) => {
 		if (
 			node.getKind() === SyntaxKind.FunctionDeclaration ||
