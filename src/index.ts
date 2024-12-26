@@ -2,44 +2,67 @@
 
 import { Project, SyntaxKind } from "ts-morph";
 import fs from "node:fs";
+import path from "node:path"; // Path モジュールの利用を追加
 import { APP } from "./constants/app";
 
 function addConsoleLogToFunctions(filePath: string): void {
 	const project = new Project();
 	const sourceFile = project.addSourceFileAtPath(filePath);
 
+	const DEFAULT_SYNTAX_NAME = "<anonymous>";
+
+	// 関数、コンストラクタ、アロー関数のすべてに対応
 	sourceFile.forEachDescendant((node) => {
 		if (
 			node.getKind() === SyntaxKind.FunctionDeclaration ||
 			node.getKind() === SyntaxKind.MethodDeclaration ||
-			node.getKind() === SyntaxKind.FunctionExpression ||
-			node.getKind() === SyntaxKind.ArrowFunction
+			node.getKind() === SyntaxKind.ArrowFunction ||
+			node.getKind() === SyntaxKind.Constructor
 		) {
 			const body = node.getFirstChildByKind(SyntaxKind.Block);
 			if (body) {
-				let functionName = "";
+				let functionName = DEFAULT_SYNTAX_NAME;
+
 				switch (node.getKind()) {
 					case SyntaxKind.MethodDeclaration:
-						functionName = node.isKind(SyntaxKind.MethodDeclaration)
-							? node.getName()
-							: "<anonymous>";
+						functionName =
+							node.asKindOrThrow(SyntaxKind.MethodDeclaration).getName() ||
+							DEFAULT_SYNTAX_NAME;
 						break;
 					case SyntaxKind.FunctionDeclaration:
-						functionName = node.isKind(SyntaxKind.FunctionDeclaration)
-							? node.getName() || "<anonymous>"
-							: "<anonymous>";
+						functionName =
+							node.asKindOrThrow(SyntaxKind.FunctionDeclaration).getName() ||
+							DEFAULT_SYNTAX_NAME;
+						break;
+					case SyntaxKind.Constructor:
+						functionName = node.isKind(SyntaxKind.Constructor)
+							? `${node.getParent().getName()}.constructor` ||
+								DEFAULT_SYNTAX_NAME
+							: DEFAULT_SYNTAX_NAME;
+						break;
+					case SyntaxKind.ArrowFunction:
+						// biome-ignore lint/correctness/noSwitchDeclarations: <explanation>
+						const parent = node.getParent();
+						if (parent?.getKind() === SyntaxKind.VariableDeclaration) {
+							functionName = parent
+								.asKindOrThrow(SyntaxKind.VariableDeclaration)
+								.getName();
+						} else if (parent?.getKind() === SyntaxKind.PropertyAssignment) {
+							functionName = parent
+								.asKindOrThrow(SyntaxKind.PropertyAssignment)
+								.getName();
+						}
 						break;
 				}
+
 				const template = `console.log("⭐️[DEBUG:${APP.NAME}] ${functionName}");`;
-				// 0番目のconsole.logが存在する場合は上書き
+
+				const firstStatement = body.getStatements()[0];
 				if (
-					body.getStatements().length > 0 &&
-					body.getStatements()[0]?.getKind() ===
-						SyntaxKind.ExpressionStatement &&
-					body.getStatements()[0]?.getText().includes("console.log")
+					firstStatement?.getKind() === SyntaxKind.ExpressionStatement &&
+					firstStatement.getText().includes("console.log")
 				) {
-					body.getStatements()[0]?.remove();
-					body.insertStatements(0, template);
+					firstStatement.replaceWithText(template);
 				} else {
 					body.insertStatements(0, template);
 				}
@@ -47,21 +70,38 @@ function addConsoleLogToFunctions(filePath: string): void {
 		}
 	});
 
+	// ファイルに保存
 	fs.writeFileSync(filePath, sourceFile.getFullText());
 }
 
-// コマンドライン引数からファイルパスを取得
+// コマンドライン引数の処理
 const args = process.argv.slice(2);
 if (args.length === 0) {
-	console.error(`Usage: ${APP.NAME} <file>`);
+	console.error(`Usage: ${APP.NAME} <file | dir>`);
 	process.exit(1);
 }
 
-const filePath = args[0];
-if (filePath) {
-	addConsoleLogToFunctions(filePath);
-	console.log(`Console.log statements added to ${filePath}`);
-} else {
-	console.error(`Usage: ${APP.NAME} <file>`);
+const inputPath = args[0];
+if (!inputPath) {
+	console.error(`Error: Path "${inputPath}" does not exist.`);
 	process.exit(1);
+}
+if (!fs.existsSync(inputPath)) {
+	console.error(`Error: Path "${inputPath}" does not exist.`);
+	process.exit(1);
+}
+
+if (fs.statSync(inputPath).isDirectory()) {
+	// ディレクトリ内のすべての TypeScript ファイルに適用
+	const files = fs
+		.readdirSync(inputPath)
+		.filter((file) => file.endsWith(".ts"));
+	for (const file of files) {
+		const fullPath = path.join(inputPath, file);
+		addConsoleLogToFunctions(fullPath);
+		console.log(`[${APP.NAME}] console.log statements added to ${fullPath}`);
+	}
+} else {
+	addConsoleLogToFunctions(inputPath);
+	console.log(`[${APP.NAME}] console.log statements added to ${inputPath}`);
 }
