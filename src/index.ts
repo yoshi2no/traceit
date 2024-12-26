@@ -2,7 +2,7 @@
 
 import { Project, SyntaxKind } from "ts-morph";
 import fs from "node:fs";
-import path from "node:path"; // Path モジュールの利用を追加
+import path from "node:path";
 import { APP } from "./constants/app";
 
 function addConsoleLogToFunctions(filePath: string): void {
