@@ -8,13 +8,14 @@ import { defineConfig } from "tsup";
 export function modernConfig(opts) {
 	return {
 		entry: opts.entry,
-		format: ["cjs", "esm"],
+		format: "esm",
+		platform: "node",
 		outDir: "build",
 		dts: true,
 		sourcemap: true,
 		clean: true,
+		tsconfig: "tsconfig.json",
 	};
 }
-
 
 export default defineConfig([modernConfig({ entry: ["src/*.ts"] })]);
