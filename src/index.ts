@@ -21,7 +21,7 @@ function addConsoleLogToFunctions(filePath: string): void {
 		) {
 			const body = node.getFirstChildByKind(SyntaxKind.Block);
 			if (body) {
-				let functionName = DEFAULT_SYNTAX_NAME;
+				let functionName = "";
 
 				switch (node.getKind()) {
 					case SyntaxKind.MethodDeclaration:
@@ -59,11 +59,12 @@ function addConsoleLogToFunctions(filePath: string): void {
 
 				const firstStatement = body.getStatements()[0];
 				if (
+					functionName !== "" &&
 					firstStatement?.getKind() === SyntaxKind.ExpressionStatement &&
 					firstStatement.getText().includes("console.log")
 				) {
 					firstStatement.replaceWithText(template);
-				} else {
+				} else if (functionName !== "") {
 					body.insertStatements(0, template);
 				}
 			}
