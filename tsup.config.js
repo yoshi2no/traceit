@@ -15,6 +15,9 @@ export function modernConfig(opts) {
 		sourcemap: true,
 		clean: true,
 		tsconfig: "tsconfig.json",
+		banner: {
+			js: 'import { createRequire } from "module";const require = createRequire(import.meta.url);',
+		},
 	};
 }
 
