@@ -2,6 +2,7 @@
 
 import { Project, SyntaxKind } from "ts-morph";
 import fs from "node:fs";
+import { APP } from "./constants/app";
 
 function addConsoleLogToFunctions(filePath: string): void {
 	const project = new Project();
@@ -29,7 +30,7 @@ function addConsoleLogToFunctions(filePath: string): void {
 							: "<anonymous>";
 						break;
 				}
-				const template = `console.log("⭐️[DEBUG] ${functionName}");`;
+				const template = `console.log("⭐️[DEBUG:${APP.NAME}] ${functionName}");`;
 				// 0番目のconsole.logが存在する場合は上書き
 				if (
 					body.getStatements().length > 0 &&
@@ -52,7 +53,7 @@ function addConsoleLogToFunctions(filePath: string): void {
 // コマンドライン引数からファイルパスを取得
 const args = process.argv.slice(2);
 if (args.length === 0) {
-	console.error("Usage: add-console-log <file>");
+	console.error(`Usage: ${APP.NAME} <file>`);
 	process.exit(1);
 }
 
@@ -61,6 +62,6 @@ if (filePath) {
 	addConsoleLogToFunctions(filePath);
 	console.log(`Console.log statements added to ${filePath}`);
 } else {
-	console.error("Usage: add-console-log <file>");
+	console.error(`Usage: ${APP.NAME} <file>`);
 	process.exit(1);
 }
